@@ -28,10 +28,16 @@ class Prompt(nn.Module):
         if prompt_key:
             key_shape = (pool_size, embed_dim)
             if prompt_key_init == 'zero':
+                # initialize with zeros
                 self.prompt_key = nn.Parameter(torch.zeros(key_shape))
             elif prompt_key_init == 'uniform':
+                # initialize with uniform distribution
                 self.prompt_key = nn.Parameter(torch.randn(key_shape))
                 nn.init.uniform_(self.prompt_key, -1, 1)
+            elif prompt_key_init == 'normal':
+                # Initialize with normal distribution (mean=0, std=1)
+                self.prompt_key = nn.Parameter(torch.randn(key_shape))
+                nn.init.normal_(self.prompt_key, mean=0, std=1)
         else:
             # else use mean of prompt as key
             # only compatible with prompt, not prefix

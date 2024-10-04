@@ -12,7 +12,7 @@
 module load python/3.10.pytorch
 
 # Activate your conda environment (if applicable)
-source /csehome/b23es1024/.conda/envs/l2p/bin/activate # or any other environment name
+# source /csehome/b23es1024/.conda/envs/l2p/bin/activate # or any other environment name
 
 # Run your PyTorch script with distributed launch
 python -m torch.distributed.launch --nproc_per_node=1 --use_env main.py five_datasets_l2p --eval 

@@ -2,7 +2,7 @@
 # Job name:
 #SBATCH --job-name=train_cifar100
 # Partition:
-#SBATCH --partition=small # Use the appropriate partition name
+#SBATCH --partition=btech # Use the appropriate partition name
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
@@ -22,4 +22,10 @@ python -m torch.distributed.launch \
         --model vit_base_patch16_224 \
         --batch-size 16 \
         --data-path /scratch/b23es1024/l2p-pytorch/local_datasets/ \
-        --output_dir ./output  
+        --output_dir ./output \
+        --epochs 8 \
+        --prompt_key_init 'normal' \
+        --embedding_key 'mean_max' \
+        --model 'vit_large_patch16_384' \
+        --top_k 8 
+        
