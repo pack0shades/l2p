@@ -90,6 +90,7 @@ def get_args_parser(subparsers):
     subparsers.add_argument('--predefined_key', default='', type=str)
     subparsers.add_argument('--pull_constraint', default=True)
     subparsers.add_argument('--pull_constraint_coeff', default=0.5, type=float)
+    subparsers.add_argument('--prompt_init', default='uniform', type=str)
 
     # ViT parameters
     subparsers.add_argument('--global_pool', default='token', choices=['token', 'avg'], type=str, help='type of global pooling for final sequence')

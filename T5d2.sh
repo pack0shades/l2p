@@ -2,7 +2,7 @@
 # Job name:
 #SBATCH --job-name=train_5dataset
 # Partition:
-#SBATCH --partition=small # Use the appropriate partition name
+#SBATCH --partition=btech # Use the appropriate partition name
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
@@ -28,4 +28,5 @@ python -m torch.distributed.launch \
         --embedding_key 'mean_max' \
         --top_k 6 \
         --shared_prompt_pool False \
-        --head_type 'token+prompt'
+        --prompt_key_init 'normal' \
+        --prompt_init 'normal'
