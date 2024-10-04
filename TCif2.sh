@@ -26,6 +26,6 @@ python -m torch.distributed.launch \
         --epochs 8 \
         --prompt_key_init 'normal' \
         --embedding_key 'mean_max' \
-        --model 'vit_large_patch16_384' \
+        --model 'vit_large_patch16_224' \
         --top_k 8 
         
