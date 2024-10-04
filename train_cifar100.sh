@@ -2,7 +2,7 @@
 # Job name:
 #SBATCH --job-name=train_cifar100
 # Partition:
-#SBATCH --partition=small # Use the appropriate partition name
+#SBATCH --partition=btech # Use the appropriate partition name
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1

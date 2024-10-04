@@ -24,8 +24,9 @@ python -m torch.distributed.launch \
         --data-path /scratch/b23es1024/l2p-pytorch/local_datasets/ \
         --output_dir ./output \
         --epochs 8 \
+        --prompt_init 'normal' \
         --prompt_key_init 'normal' \
         --embedding_key 'mean_max' \
-        --model 'vit_large_patch16_224' \
+        --model 'vit_base_patch16_224' \
         --top_k 8 
         

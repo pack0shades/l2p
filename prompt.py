@@ -23,6 +23,9 @@ class Prompt(nn.Module):
             elif prompt_init == 'uniform':
                 self.prompt = nn.Parameter(torch.randn(prompt_pool_shape))
                 nn.init.uniform_(self.prompt, -1, 1)
+            elif prompt_init == 'normal':
+                self.prompt = nn.Parameter(torch.randn(prompt_pool_shape))
+                nn.init.normal_(self.prompt, mean=0, std=1)
         
         # if using learnable prompt keys
         if prompt_key:
