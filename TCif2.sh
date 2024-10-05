@@ -24,9 +24,13 @@ python -m torch.distributed.launch \
         --data-path /scratch/b23es1024/l2p-pytorch/local_datasets/ \
         --output_dir ./output \
         --epochs 8 \
-        --prompt_init 'normal' \
-        --prompt_key_init 'normal' \
+        --size 25 \
         --embedding_key 'mean_max' \
-        --model 'vit_base_patch16_224' \
-        --top_k 8 
+        --top_k 8 \
+        --prompt_key_init 'normal' \
+        --prompt_init 'normal' \
+        --shared_prompt_pool False \
+        --shared_prompt_key False \
+        --head_type 'prompt'
+
         

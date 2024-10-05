@@ -27,6 +27,8 @@ python -m torch.distributed.launch \
         --size 25 \
         --embedding_key 'mean_max' \
         --top_k 6 \
-        --shared_prompt_pool False \
         --prompt_key_init 'normal' \
-        --prompt_init 'normal'
+        --prompt_init 'normal' \
+        --shared_prompt_pool True \
+        --shared_prompt_key True \
+        --head_type 'prompt'
