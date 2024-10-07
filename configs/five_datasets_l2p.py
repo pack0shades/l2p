@@ -50,7 +50,7 @@ def get_args_parser(subparsers):
     subparsers.add_argument('--recount', type=int, default=1, help='Random erase count (default: 1)')
 
     # Data parameters
-    subparsers.add_argument('--data-path', default='/scratch/b23es1024/l2p-pytorch/local_datasets/', type=str, help='dataset path')
+    subparsers.add_argument('--data-path', default='/home/raid/Desktop/Pragay/l2p/local_datasets/', type=str, help='dataset path')
     subparsers.add_argument('--dataset', default='5-datasets', type=str, help='dataset name')
     subparsers.add_argument('--shuffle', default=False, help='shuffle the data order')
     subparsers.add_argument('--output_dir', default='./output', help='path where to save, empty for no saving')
