@@ -2,7 +2,7 @@
 # Job name:
 #SBATCH --job-name=train_5dataset
 # Partition:
-#SBATCH --partition=btech # Use the appropriate partition name
+#SBATCH --partition=small # Use the appropriate partition name
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
@@ -24,11 +24,11 @@ python -m torch.distributed.launch \
         --data-path /scratch/b23es1024/l2p-pytorch/local_datasets/ \
         --output_dir ./output \
         --epochs 8 \
-        --size 25 \
+        --size 20 \
         --embedding_key 'mean_max' \
         --top_k 6 \
         --prompt_key_init 'normal' \
         --prompt_init 'normal' \
         --shared_prompt_pool True \
-        --shared_prompt_key True \
+        --shared_prompt_key False \
         --head_type 'prompt'

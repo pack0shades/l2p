@@ -24,13 +24,13 @@ python -m torch.distributed.launch \
         --data-path /scratch/b23es1024/l2p-pytorch/local_datasets/ \
         --output_dir ./output \
         --epochs 8 \
-        --size 25 \
+        --size 20 \
         --embedding_key 'mean_max' \
-        --top_k 8 \
+        --top_k 6 \
         --prompt_key_init 'normal' \
         --prompt_init 'normal' \
-        --shared_prompt_pool False \
-        --shared_prompt_key False \
+        --shared_prompt_pool True \
+        --shared_prompt_key True \
         --head_type 'prompt'
 
         
