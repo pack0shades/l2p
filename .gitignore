@@ -5,3 +5,4 @@ checkpoint/
 *.err
 local_datasets/
 configs/
+raid_out.txt
