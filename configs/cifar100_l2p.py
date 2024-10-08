@@ -1,5 +1,15 @@
 import argparse
 
+def str2bool(value):
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif value.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
 def get_args_parser(subparsers):
     subparsers.add_argument('--batch-size', default=16, type=int, help='Batch size per device')
     subparsers.add_argument('--epochs', default=5, type=int)
@@ -83,8 +93,8 @@ def get_args_parser(subparsers):
     subparsers.add_argument('--prompt_key', default=True, type=bool,)
     subparsers.add_argument('--prompt_key_init', default='uniform', type=str)
     subparsers.add_argument('--use_prompt_mask', default=False, type=bool)
-    subparsers.add_argument('--shared_prompt_pool', default=False, type=bool)
-    subparsers.add_argument('--shared_prompt_key', default=False, type=bool)
+    subparsers.add_argument('--shared_prompt_pool', type=str2bool, default=False, type=bool)
+    subparsers.add_argument('--shared_prompt_key', type=str2bool, default=False, type=bool)
     subparsers.add_argument('--batchwise_prompt', default=True, type=bool)
     subparsers.add_argument('--embedding_key', default='cls', type=str)
     subparsers.add_argument('--predefined_key', default='', type=str)
