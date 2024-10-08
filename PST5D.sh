@@ -11,14 +11,16 @@
 python -m torch.distributed.launch \
         --nproc_per_node=1 \
         --use_env main.py \
-          cifar100_l2p \
+          five_datasets_l2p \
         --model vit_base_patch16_224 \
         --batch-size 16 \
         --output_dir ./output \
         --epochs 8 \
-        --prompt_key_init 'normal' \
+        --size 10 \
         --embedding_key 'mean_max' \
-        --model 'vit_large_patch16_224' \
-        --top_k 8 
-
-
+        --top_k 8 \
+        --prompt_key_init 'normal' \
+        --prompt_init 'normal' \
+        --shared_prompt_pool False \
+        --shared_prompt_key False \
+        --head_type 'prompt'
