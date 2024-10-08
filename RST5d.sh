@@ -14,7 +14,7 @@ python -m torch.distributed.launch \
           five_datasets_l2p \
         --model vit_base_patch16_224 \
         --batch-size 16 \
-        --data-path /scratch/b23es1024/l2p-pytorch/local_datasets/ \
+        --data-path /home/raid/Desktop/Pragay/l2p/local_datasets/ \
         --output_dir ./output \
         --epochs 8 \
         --size 25 \

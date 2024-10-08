@@ -14,7 +14,7 @@ python -m torch.distributed.launch \
           cifar100_l2p \
         --model vit_base_patch16_224 \
         --batch-size 16 \
-        --data-path /home/b23es1024/l2p/local_datasets \
+        --data-path /home/b23es1024/l2p/local_datasets/ \
         --output_dir ./output \
         --epochs 8 \
         --size 20 \
