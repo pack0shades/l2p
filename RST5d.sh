@@ -16,11 +16,11 @@ python -m torch.distributed.launch \
         --batch-size 16 \
         --output_dir ./output \
         --epochs 8 \
-        --size 25 \
+        --size 10 \
         --embedding_key 'mean_max' \
-        --top_k 6 \
+        --top_k 8 \
         --prompt_key_init 'normal' \
         --prompt_init 'normal' \
         --shared_prompt_pool False \
-        --shared_prompt_key True \
+        --shared_prompt_key False \
         --head_type 'prompt'
