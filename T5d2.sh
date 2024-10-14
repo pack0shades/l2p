@@ -28,6 +28,7 @@ python -m torch.distributed.launch \
         --embedding_key 'cls' \
         --top_k 4 \
         --prompt_key_init 'uniform' \
+        --prompt_init 'normal' \
         --shared_prompt_pool True \
         --shared_prompt_key False \
         --head_type 'prompt'
