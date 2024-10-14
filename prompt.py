@@ -117,6 +117,9 @@ class Prompt(nn.Module):
             elif self.prompt_init == 'uniform':
                 self.prompt = nn.Parameter(torch.randn(self.length, self.embed_dim))
                 nn.init.uniform_(self.prompt)
+            elif self.prompt_init == 'normal':
+                self.prompt = nn.Parameter(torch.randn(self.length, self.embed_dim))
+                nn.init.normal_(self.prompt, mean=0, std=1)
             batched_prompt = self.prompt.unsqueeze(0).expand(x_embed.shape[0], -1, -1)
         
         # The input with the prompt concatenated to the front. [B, prompt+token, C]

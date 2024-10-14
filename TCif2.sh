@@ -23,7 +23,7 @@ python -m torch.distributed.launch \
         --batch-size 16 \
         --data-path /scratch/b23es1024/l2p-pytorch/local_datasets/ \
         --output_dir ./output \
-        --epochs 8 \
+        --epochs 5 \
         --size 20 \
         --embedding_key 'mean_max' \
         --top_k 6 \
