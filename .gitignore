@@ -8,3 +8,6 @@ configs/
 raid_out.txt
 configs/cifar100_l2p.py
 configs/five_datasets_l2p.py
+palashserver.txt
+poetry.lock
+pyproject.toml
