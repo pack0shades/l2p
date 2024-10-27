@@ -25,12 +25,12 @@ python -m torch.distributed.launch \
         --output_dir ./output \
         --epochs 5 \
         --size 20 \
-        --embedding_key 'mean_max' \
-        --top_k 6 \
-        --prompt_key_init 'normal' \
-        --prompt_init 'normal' \
+        --embedding_key cls \
+        --top_k 4 \
+        --prompt_key_init uniform \
+        --prompt_init uniform \
         --shared_prompt_pool True \
-        --shared_prompt_key True \
-        --head_type 'prompt'
+        --shared_prompt_key False \
+        --head_type prompt
 
         
