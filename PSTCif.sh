@@ -17,12 +17,12 @@ python -m torch.distributed.launch \
         --data-path /home/b23es1024/l2p/local_datasets/ \
         --output_dir ./output \
         --epochs 8 \
-        --size 20 \
+        --size 25 \
         --embedding_key 'mean_max' \
         --top_k 6 \
         --prompt_key_init 'normal' \
         --prompt_init 'normal' \
-        --shared_prompt_pool True \
+        --shared_prompt_pool False \
         --shared_prompt_key True \
         --head_type 'prompt'
 

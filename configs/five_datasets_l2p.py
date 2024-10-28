@@ -94,7 +94,7 @@ def get_args_parser(subparsers):
     subparsers.add_argument('--prompt_key', default=True, type=bool,)
     subparsers.add_argument('--prompt_key_init', default='uniform', type=str)
     subparsers.add_argument('--use_prompt_mask', default=True, type=bool)
-    subparsers.add_argument('--shared_prompt_pool', type=str2bool, default=False)
+    subparsers.add_argument('--shared_prompt_pool', type=str2bool, default=True)
     subparsers.add_argument('--shared_prompt_key', type=str2bool, default=False)
     subparsers.add_argument('--batchwise_prompt', default=True, type=bool)
     subparsers.add_argument('--embedding_key', default='cls', type=str)
