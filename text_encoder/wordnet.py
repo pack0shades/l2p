@@ -18,17 +18,19 @@ def get_definition(file_path):
         labels = data['labels']
         lables_definitions = {}
         for label in labels:
-            if label == "Normal Videos":
-                lables_definitions[label] = "Regular video content without criminal activity."
-            elif label == "RoadAccidents":
-                lables_definitions[label] = "Accidents occurring on the road involving vehicles."
-            else:
-                lables_definitions[label] = get_wordnet_definition(label)
+            lables_definitions[label] = get_wordnet_definition(label)
         return lables_definitions
+    
+def save_definitions(definitions, save_path='text_definitions.json'):
+    with open(save_path, 'w') as f:
+        json.dump(definitions, f)
 
 
 if __name__ == '__main__':
     # Save definitions to a JSON file
-    file = './data/ucf_crime_labels.json'
+    path = 'text_definitions.json'
+    file = './data/classlabels.json'
     definitions = get_definition(file)
     print (definitions)
+    save_definitions(definitions)
+    print(f"saved definition successfully at {path}")

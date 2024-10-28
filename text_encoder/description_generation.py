@@ -2,6 +2,7 @@ import os
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from secret_key import API_tog_1 as API_KEY
+import json
 
 # Set TogetherAI API key
 os.environ["TOGETHER_API_KEY"] = API_KEY
@@ -35,19 +36,18 @@ def generate_expanded_definition(definitions_dict):
 
     return expanded_definitions
 
+def save_definitions(definitions, save_path='text_expanded_definitions.json'):
+    with open(save_path, 'w') as f:
+        json.dump(definitions, f)
+    return save_path
 
 if __name__ == "__main__":
     # Example input dictionary
-    input_definitions = {
-        "Abuse": "cruel or inhumane treatment",
-        "Photosynthesis": "the process by which plants make food using sunlight",
-        "Gravity": "the force that attracts objects towards the earth"
-    }
+    with open("definitions.json", "r") as file:
+        input_definitions = json.load(file)
 
     # Get the expanded definitions
     output_definitions = generate_expanded_definition(input_definitions)
-
+    path = save_definitions(output_definitions)
     # Print the results
-    print("Generated expanded definitions:")
-    for name, expanded_definition in output_definitions.items():
-        print(f"{name}: {expanded_definition}")
+    print(f"Generated expanded definitions:saved at {path}")

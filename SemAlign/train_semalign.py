@@ -24,7 +24,7 @@ def save_checkpoint(model, optimizer, epoch, loss, checkpoint_dir="checkpoints")
 
 def train_semalign_model(model, train_loader, optimizer, num_epochs, device, save_best=True):
     model.train()
-    criterion = nn.L1Loss()  # Use L1 loss
+    criterion = nn.L2Loss()  # Use L2 loss
     best_loss = float('inf')  # Initialize with infinity to track the best model
 
     for epoch in range(num_epochs):
