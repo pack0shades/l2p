@@ -1,5 +1,7 @@
 import json
 from nltk.corpus import wordnet as wn
+import nltk
+nltk.download('wordnet')
 
 
 def get_wordnet_definition(label):
@@ -21,7 +23,7 @@ def get_definition(file_path):
             lables_definitions[label] = get_wordnet_definition(label)
         return lables_definitions
     
-def save_definitions(definitions, save_path='text_definitions.json'):
+def save_definitions(definitions, save_path='./text_encoder/data/text_definitions.json'):
     with open(save_path, 'w') as f:
         json.dump(definitions, f)
 
@@ -29,7 +31,7 @@ def save_definitions(definitions, save_path='text_definitions.json'):
 if __name__ == '__main__':
     # Save definitions to a JSON file
     path = 'text_definitions.json'
-    file = './data/classlabels.json'
+    file = './text_encoder/data/classlabels.json'
     definitions = get_definition(file)
     print (definitions)
     save_definitions(definitions)

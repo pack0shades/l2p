@@ -36,14 +36,14 @@ def generate_expanded_definition(definitions_dict):
 
     return expanded_definitions
 
-def save_definitions(definitions, save_path='text_expanded_definitions.json'):
+def save_definitions(definitions, save_path='./text_encoder/data/text_expanded_definitions.json'):
     with open(save_path, 'w') as f:
         json.dump(definitions, f)
     return save_path
 
 if __name__ == "__main__":
     # Example input dictionary
-    with open("definitions.json", "r") as file:
+    with open("./text_encoder/data/text_definitions.json", "r") as file:
         input_definitions = json.load(file)
 
     # Get the expanded definitions
