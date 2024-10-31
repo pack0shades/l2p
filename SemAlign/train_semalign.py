@@ -60,7 +60,7 @@ def train_semalign_model(model, train_loader, optimizer, num_epochs, device, sav
 
 if __name__ == "__main__":
     # Parameters
-    v_size = 640  # Size of video embeddings
+    v_size = 640  # Size of image embeddings
     s_size = 768  # Size of semantic embeddings
     num_epochs = 50
     learning_rate = 0.001
