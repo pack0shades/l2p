@@ -2,7 +2,7 @@
 
 
 # Load required modules
-# module load python/3.10.pytorch
+module load python/3.10.pytorch
 
 # Activate your conda environment (if applicable)
 # source /csehome/b23es1024/.conda/bin/activate l2p  # or any other environment name

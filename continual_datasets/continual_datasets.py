@@ -457,8 +457,8 @@ class CUB200(torch.utils.data.Dataset):
         self.data = datasets.ImageFolder(fpath, transform=transform)
 
     def split(self):
-        train_folder = self.root + 'CUB_200_2011/train'
-        test_folder = self.root + 'CUB_200_2011/test'
+        train_folder = self.root + '/CUB_200_2011/train'
+        test_folder = self.root + '/CUB_200_2011/test'
 
         if os.path.exists(train_folder):
             rmtree(train_folder)

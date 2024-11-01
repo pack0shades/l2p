@@ -4,21 +4,32 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, ConcatDataset
-from torchvision import transforms
+from torchvision import transforms, datasets
 from timm import create_model
 from tqdm import tqdm
-from semalign import SemAlign
+from SemAlign.semalign import SemAlign
 
 # Import dataset classes
 from continual_datasets.continual_datasets import (
     MNIST_RGB, FashionMNIST, NotMNIST, SVHN,
     Flowers102, StanfordCars, CUB200, TinyImagenet,
-    Scene67, Imagenet_R
+    Scene67, Imagenet_R, 
 )
 
 # Device configuration
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
+def build_transform(is_train,input_size): 
+    resize_im = input_size > 32
+    if is_train:
+        scale = (0.05, 1.0)
+        ratio = (3. / 4., 4. / 3.)
+        transform = transforms.Compose([
+            transforms.RandomResizedCrop(input_size, scale=scale, ratio=ratio),
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.ToTensor(),
+        ])
+        return transform
 # Define the model and optimizer
 def initialize_model(v_size, s_size, learning_rate):
     model = SemAlign(v_size, s_size).to(device)
@@ -38,21 +49,29 @@ def save_checkpoint(model, optimizer, epoch, loss, checkpoint_dir="checkpoints")
     print(f"Checkpoint saved at {checkpoint_path}")
 
 # Generate embedding for an image and retrieve corresponding text embedding
-def generate_embeddings(img, model, text_embeddings, label):
+def generate_embeddings(img, model, text_embeddings, labels):
     # Generate the image embedding
     with torch.no_grad():
-        img_embedding = model(img.unsqueeze(0)).squeeze(0).to(device)  # Add and remove batch dim
 
-    # Retrieve text embedding
-    text_embedding = torch.tensor(text_embeddings.get(str(label), np.zeros(768))).to(device)  # Handle missing embeddings
+        print(f"these areimage embedding shape at line 44-------------------------------------{img.shape} ")
+        print(f"these areimage embedding shape at line 44-------------------------------------{img.shape} ")
+        img_embedding = model(img).to(device)  # Add and remove batch dim
 
-    return img_embedding, text_embedding
+    # Prepare a list to store text embeddings
+    text_embeddings_list = []
+    
+    for label in labels:  # Iterate through each label in the batch
+        text_embedding = torch.tensor(text_embeddings.get(str(label.item()), np.zeros(384))).to(device)  # Handle missing embeddings
+        print(f"{label}: and its embedding shape{text_embedding.shape}....{text_embedding.dtype}")
+        text_embeddings_list.append(text_embedding)
+        
+    return img_embedding, torch.stack(text_embeddings_list)
 
 # Training loop
 def train_semalign_model(model, pretrained_model, data_loaders, optimizer, text_embeddings, num_epochs, save_best=True):
     criterion = nn.MSELoss()  # Using MSE loss for embeddings similarity
     best_loss = float('inf')
-
+    print("training started---------------------------------------------------------")
     for epoch in range(num_epochs):
         total_loss = 0.0
         model.train()
@@ -60,11 +79,12 @@ def train_semalign_model(model, pretrained_model, data_loaders, optimizer, text_
         for data_loader in data_loaders:
             for img, label in tqdm(data_loader, desc=f"Epoch {epoch+1}/{num_epochs}"):
                 img = img.to(device)
-                img_embedding, text_embedding = generate_embeddings(img, pretrained_model, text_embeddings, label.item())
-
+                print(f"these are image embeddings shape at line 67---------------------------------------------------{img.shape}{img.dtype}")
+                img_embedding, text_embedding = generate_embeddings(img, pretrained_model, text_embeddings, label)
+                print(f"this is the img embedding shape:{img_embedding.shape} ans this is text embedding shape: {text_embedding.shape}")
                 optimizer.zero_grad()
-                outputs = model(img_embedding, text_embedding)
-                loss = criterion(outputs, text_embedding)
+                outputs = model(img_embedding.float(), text_embedding.float())
+                loss = criterion(outputs, img_embedding)
 
                 loss.backward()
                 optimizer.step()
@@ -74,7 +94,9 @@ def train_semalign_model(model, pretrained_model, data_loaders, optimizer, text_
         print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {avg_loss:.4f}")
 
         # Save checkpoint
+        print("saving checkpoint")
         save_checkpoint(model, optimizer, epoch, avg_loss)
+        print("saved...")
 
         # Save the best model
         if save_best and avg_loss < best_loss:
@@ -82,47 +104,63 @@ def train_semalign_model(model, pretrained_model, data_loaders, optimizer, text_
             torch.save(model.state_dict(), "best_model.pth")
             print("Best model updated and saved.")
 
+# Load CIFAR-10 dataset
+def load_cifar10(root_dir, train=True, transform=None):
+    return datasets.CIFAR10(root=root_dir, train=train, transform=transform, download=True)
+
+# Load CIFAR-100 dataset
+def load_cifar100(root_dir, train=True, transform=None):
+    return datasets.CIFAR100(root=root_dir, train=train, transform=transform, download=True)
+
 if __name__ == "__main__":
     # Parameters
-    v_size = 640  # Image embedding size from ViT
-    s_size = 768  # Text embedding size
+    v_size = 768  
+    s_size = 384  # Text embedding size
     num_epochs = 50
     learning_rate = 0.001
 
     # Load text embeddings from JSON file
-    with open('/home/b23es1024/l2p/text_encoder/data/text_embeddings.json', 'r') as f:
+    with open('/scratch/b23es1024/l2p-pytorch/text_encoder/data/text_embeddings.json', 'r') as f:
         text_embeddings = json.load(f)
+        print("embeddings retrieved---------------------------------------")
 
     # Initialize model and optimizer
     model, optimizer = initialize_model(v_size, s_size, learning_rate)
+    print("SemAlign model initialized---------------------------------------------------")
 
     # Load the pretrained ViT model for generating image embeddings
     pretrained_model = create_model('vit_base_patch16_224', pretrained=True, num_classes=0).to(device)
     pretrained_model.eval()
+    print("pretrained model initialized --------------------------------------------")
 
     # Data transformations
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
     ])
+    print("troansformations done-------------------------------------------------------------")
 
     # Define dataset and data loaders
     root_dir = './local_datasets'
+    # if needed write transform = build_transform(is_train=True,input_size=224)
     dataset_classes = [
         lambda: MNIST_RGB(root_dir, train=True, transform=transform, download=True),
         lambda: FashionMNIST(root_dir, train=True, transform=transform, download=True),
         lambda: NotMNIST(root_dir, train=True, transform=transform, download=True),
         lambda: SVHN(root_dir, split='train', transform=transform, download=True),
-        lambda: Flowers102(root_dir, transform=transform, download=True),
-        lambda: StanfordCars(root_dir, transform=transform, download=True),
-        lambda: CUB200(root_dir, train=True, transform=transform, download=True),
-        lambda: TinyImagenet(root_dir, transform=transform, download=True),
-        lambda: Scene67(root_dir, transform=transform, download=True),
-        lambda: Imagenet_R(root_dir, train=True, transform=transform, download=True)
+        lambda: load_cifar10(root_dir, train=True, transform=transform),
+        lambda: load_cifar100(root_dir, train=True, transform=transform),
+        #lambda: Flowers102(root_dir, transform=transform, download=True),
+        #lambda: StanfordCars(root_dir, transform=transform, download=True),
+        #lambda: CUB200(root_dir, train=True, transform=transform, download=True),
+        #lambda: TinyImagenet(root_dir, transform=transform, download=True),
+        #lambda: Scene67(root_dir, transform=transform, download=True),
+        #lambda: Imagenet_R(root_dir, train=True, transform=transform, download=True)
     ]
 
     # Create DataLoaders for each dataset
     data_loaders = [DataLoader(dataset_class(), batch_size=32, shuffle=True) for dataset_class in dataset_classes]
+    print("dataloaders created-----------------------------------------------------------------------")
 
     # Train the model
     train_semalign_model(model, pretrained_model, data_loaders, optimizer, text_embeddings, num_epochs)

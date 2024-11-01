@@ -13,10 +13,12 @@ def get_text_embeddings_BERT(definitions):
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
     model = BertModel.from_pretrained('bert-base-uncased')
     embeddings = []
+    embeddings_dict = {}
     for definition in definitions.values():
         inputs = tokenizer(definition, return_tensors='pt')
         outputs = model(**inputs)
         text_embedding = outputs.last_hidden_state
+        
         embeddings.append(text_embedding)
     print(f"shape of embeddings:{len(embeddings)}")
     return embeddings
@@ -27,6 +29,9 @@ def get_text_embeddings_SBERT(definitions):
     embedding_dict = {}
     for label, definition in definitions.items():
         text_embedding = model.encode(definition, convert_to_tensor=True)
+        print(f"this is the embedding size for {label}:::{text_embedding.shape}")
+        if text_embedding.shape != torch.Size([384]):
+            print("arre bhai kyaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa  krr rha haiii")
         embeddings.append(text_embedding)
         embedding_dict[label] = text_embedding
     
