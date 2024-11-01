@@ -13,3 +13,4 @@ poetry.lock
 pyproject.toml
 secret_key.py
 SemAlign/local_data/
+checkpoints/
