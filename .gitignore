@@ -14,3 +14,5 @@ pyproject.toml
 secret_key.py
 SemAlign/local_data/
 checkpoints/
+Semaligntrian.txt
+output.log
