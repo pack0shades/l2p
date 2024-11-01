@@ -8,6 +8,8 @@ from torchvision import transforms, datasets
 from timm import create_model
 from tqdm import tqdm
 from SemAlign.semalign import SemAlign
+import time
+from sklearn.metrics import accuracy_score
 
 # Import dataset classes
 from continual_datasets.continual_datasets import (
@@ -53,8 +55,8 @@ def generate_embeddings(img, model, text_embeddings, labels):
     # Generate the image embedding
     with torch.no_grad():
 
-        print(f"these areimage embedding shape at line 44-------------------------------------{img.shape} ")
-        print(f"these areimage embedding shape at line 44-------------------------------------{img.shape} ")
+        #print(f"these areimage embedding shape at line 44-------------------------------------{img.shape} ")
+        #print(f"these areimage embedding shape at line 44-------------------------------------{img.shape} ")
         img_embedding = model(img).to(device)  # Add and remove batch dim
 
     # Prepare a list to store text embeddings
@@ -62,37 +64,47 @@ def generate_embeddings(img, model, text_embeddings, labels):
     
     for label in labels:  # Iterate through each label in the batch
         text_embedding = torch.tensor(text_embeddings.get(str(label.item()), np.zeros(384))).to(device)  # Handle missing embeddings
-        print(f"{label}: and its embedding shape{text_embedding.shape}....{text_embedding.dtype}")
+        #print(f"{label}: and its embedding shape{text_embedding.shape}....{text_embedding.dtype}")
         text_embeddings_list.append(text_embedding)
         
     return img_embedding, torch.stack(text_embeddings_list)
 
 # Training loop
 def train_semalign_model(model, pretrained_model, data_loaders, optimizer, text_embeddings, num_epochs, save_best=True):
+    start_time = time.time()
     criterion = nn.MSELoss()  # Using MSE loss for embeddings similarity
     best_loss = float('inf')
     print("training started---------------------------------------------------------")
     for epoch in range(num_epochs):
         total_loss = 0.0
+        total_accuracy = 0.0
+        epoch_time = time.time()
+        
+        
         model.train()
 
         for data_loader in data_loaders:
             for img, label in tqdm(data_loader, desc=f"Epoch {epoch+1}/{num_epochs}"):
+                total_time_elapsed = time.time() - start_time
+                print(f"Total time elapsed : {total_time_elapsed}")
                 img = img.to(device)
-                print(f"these are image embeddings shape at line 67---------------------------------------------------{img.shape}{img.dtype}")
+                #print(f"these are image embeddings shape at line 67---------------------------------------------------{img.shape}{img.dtype}")
                 img_embedding, text_embedding = generate_embeddings(img, pretrained_model, text_embeddings, label)
-                print(f"this is the img embedding shape:{img_embedding.shape} ans this is text embedding shape: {text_embedding.shape}")
                 optimizer.zero_grad()
                 outputs = model(img_embedding.float(), text_embedding.float())
                 loss = criterion(outputs, img_embedding)
-
+                accuracy = accuracy_score(outputs,img_embedding)
                 loss.backward()
                 optimizer.step()
                 total_loss += loss.item()
+                total_accuracy += accuracy
+            print(f"this is the img embedding shape:{img_embedding.shape} ans this is text embedding shape: {text_embedding.shape}")
 
         avg_loss = total_loss / sum(len(dl) for dl in data_loaders)
+        avg_accuracy = total_accuracy/ sum(len(dl) for dl in data_loaders)
         print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {avg_loss:.4f}")
-
+        print(f"Epoch [{epoch+1}/{num_epochs}], accuracy: {avg_accuracy:.4f}")
+        print(f"time taken by {epoch} epoch : {time.time() - epoch_time}")
         # Save checkpoint
         print("saving checkpoint")
         save_checkpoint(model, optimizer, epoch, avg_loss)
@@ -101,6 +113,7 @@ def train_semalign_model(model, pretrained_model, data_loaders, optimizer, text_
         # Save the best model
         if save_best and avg_loss < best_loss:
             best_loss = avg_loss
+            best_accuracy = avg_accuracy
             torch.save(model.state_dict(), "best_model.pth")
             print("Best model updated and saved.")
 
@@ -116,7 +129,7 @@ if __name__ == "__main__":
     # Parameters
     v_size = 768  
     s_size = 384  # Text embedding size
-    num_epochs = 50
+    num_epochs = 5
     learning_rate = 0.001
 
     # Load text embeddings from JSON file

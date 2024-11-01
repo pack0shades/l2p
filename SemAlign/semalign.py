@@ -8,7 +8,7 @@ class SemAlign(nn.Module):
         self.context_transform = nn.Linear(s_size, v_size)  # Transform contexts to match v_size
         self.model = nn.Sequential(
             nn.Linear(v_size + v_size, h_size),  # Now both inputs are of size v_size
-            nn.LeakyReLU(0.2)
+            nn.LeakyReLU(0.2),
         )
         self.drop = nn.Dropout(drop)
         self.fc = nn.Linear(h_size, v_size)
