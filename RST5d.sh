@@ -22,6 +22,6 @@ python -m torch.distributed.launch \
         --top_k 8 \
         --prompt_key_init 'normal' \
         --prompt_init 'normal' \
-        --shared_prompt_pool True \
+        --prompt_init 'normal' \
         --shared_prompt_key True \
         --head_type 'prompt'

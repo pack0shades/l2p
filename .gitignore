@@ -16,3 +16,4 @@ SemAlign/local_data/
 checkpoints/
 Semaligntrian.txt
 output.log
+BERT_checkpoints/

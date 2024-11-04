@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader, ConcatDataset
 from torchvision import transforms, datasets
 from timm import create_model
 from tqdm import tqdm
-from SemAlign.semalign import SemAlign
+from SemAlign.semalign import SemAlign_BERT
 import time
 from sklearn.metrics import accuracy_score
 
@@ -34,12 +34,12 @@ def build_transform(is_train,input_size):
         return transform
 # Define the model and optimizer
 def initialize_model(v_size, s_size, learning_rate):
-    model = SemAlign(v_size, s_size).to(device)
+    model = SemAlign_BERT(v_size, s_size).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     return model, optimizer
 
 # Save the model checkpoint
-def save_checkpoint(model, optimizer, epoch, loss, checkpoint_dir="checkpoints"):
+def save_checkpoint(model, optimizer, epoch, loss, checkpoint_dir="BERT_checkpoints"):
     os.makedirs(checkpoint_dir, exist_ok=True)
     checkpoint_path = os.path.join(checkpoint_dir, f"checkpoint_epoch_{epoch+1}.pth")
     torch.save({
@@ -69,6 +69,29 @@ def generate_embeddings(img, model, text_embeddings, labels):
         
     return img_embedding, torch.stack(text_embeddings_list)
 
+
+def generate_embeddings_bert(img, model, text_embeddings, labels):
+    # Generate the image embedding
+    with torch.no_grad():
+        #print(f"these areimage embedding shape at line 44-------------------------------------{img.shape} ")
+        #print(f"these areimage embedding shape at line 44-------------------------------------{img.shape} ")
+        img_embedding = model(img).to(device)
+
+    # Prepare a list to store text embeddings
+    text_embeddings_list = []
+    
+    for label in labels:
+        # Retrieve or initialize text embedding with the correct size (768 for BERT)
+        text_embedding = torch.tensor(text_embeddings.get(str(label.item()), np.zeros(768))).to(device)
+        #print(f"{label}: and its embedding shape{text_embedding.shape}....{text_embedding.dtype}")
+        # Ensure text embedding is 1D (size [768]) for consistent stacking
+        text_embedding = text_embedding.squeeze() if text_embedding.dim() > 1 else text_embedding
+
+        text_embeddings_list.append(text_embedding)
+    
+    # Stack all text embeddings into a single tensor
+    return img_embedding, torch.stack(text_embeddings_list)
+
 # Training loop
 def train_semalign_model(model, pretrained_model, data_loaders, optimizer, text_embeddings, num_epochs, save_best=True):
     start_time = time.time()
@@ -84,26 +107,33 @@ def train_semalign_model(model, pretrained_model, data_loaders, optimizer, text_
         model.train()
 
         for data_loader in data_loaders:
+            print("next dataloader-----------------------------")
             for img, label in tqdm(data_loader, desc=f"Epoch {epoch+1}/{num_epochs}"):
                 total_time_elapsed = time.time() - start_time
-                print(f"Total time elapsed : {total_time_elapsed}")
+                print(f"Total time elapsed : {total_time_elapsed/60}mins")
                 img = img.to(device)
                 #print(f"these are image embeddings shape at line 67---------------------------------------------------{img.shape}{img.dtype}")
-                img_embedding, text_embedding = generate_embeddings(img, pretrained_model, text_embeddings, label)
+                #img_embedding, text_embedding = generate_embeddings(img, pretrained_model, text_embeddings, label)
+                img_embedding, text_embedding = generate_embeddings_bert(img, pretrained_model, text_embeddings, label)
                 optimizer.zero_grad()
                 outputs = model(img_embedding.float(), text_embedding.float())
                 loss = criterion(outputs, img_embedding)
-                accuracy = accuracy_score(outputs,img_embedding)
+                #accuracy = accuracy_score(outputs,img_embedding)  
+                """accuracy is not a good metric for"""
                 loss.backward()
                 optimizer.step()
                 total_loss += loss.item()
-                total_accuracy += accuracy
+                #total_accuracy += accuracy
+                
             print(f"this is the img embedding shape:{img_embedding.shape} ans this is text embedding shape: {text_embedding.shape}")
+            total_time_elapsed = time.time() - start_time
+            print(f"Total time elapsed : {total_time_elapsed/60}mins")
+
 
         avg_loss = total_loss / sum(len(dl) for dl in data_loaders)
-        avg_accuracy = total_accuracy/ sum(len(dl) for dl in data_loaders)
+        #avg_accuracy = total_accuracy/ sum(len(dl) for dl in data_loaders)
         print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {avg_loss:.4f}")
-        print(f"Epoch [{epoch+1}/{num_epochs}], accuracy: {avg_accuracy:.4f}")
+        print(f"Epoch [{epoch+1}/{num_epochs}]") # "accuracy: {avg_accuracy:.4f}"
         print(f"time taken by {epoch} epoch : {time.time() - epoch_time}")
         # Save checkpoint
         print("saving checkpoint")
@@ -113,8 +143,8 @@ def train_semalign_model(model, pretrained_model, data_loaders, optimizer, text_
         # Save the best model
         if save_best and avg_loss < best_loss:
             best_loss = avg_loss
-            best_accuracy = avg_accuracy
-            torch.save(model.state_dict(), "best_model.pth")
+            #best_accuracy = avg_accuracy
+            torch.save(model.state_dict(), "BERT_best_model.pth")
             print("Best model updated and saved.")
 
 # Load CIFAR-10 dataset
@@ -127,13 +157,21 @@ def load_cifar100(root_dir, train=True, transform=None):
 
 if __name__ == "__main__":
     # Parameters
+    print("Starting image_embedding.py...")
+    print(f"CUDA available: {torch.cuda.is_available()}")
+    print(f"Using device: {device}")
+    try:
+        test_tensor = torch.rand(1).to(device)
+        print("Test tensor on device:", test_tensor)
+    except Exception as e:
+        print("Error when moving tensor to device:", e)
     v_size = 768  
-    s_size = 384  # Text embedding size
-    num_epochs = 5
+    s_size = 768  # Text embedding size
+    num_epochs = 3
     learning_rate = 0.001
 
     # Load text embeddings from JSON file
-    with open('/scratch/b23es1024/l2p-pytorch/text_encoder/data/text_embeddings.json', 'r') as f:
+    with open('/scratch/b23es1024/l2p-pytorch/text_encoder/data/bert_text_embeddings.json', 'r') as f:
         text_embeddings = json.load(f)
         print("embeddings retrieved---------------------------------------")
 

@@ -10,11 +10,13 @@
 
 # Load required modules
 module load python/3.10.pytorch
+echo module loaded
 
 # Activate your conda environment (if applicable)
 # source /csehome/b23es1024/.conda/envs/bin/activate l2p  # or any other environment name
 
 # Run your PyTorch script with distributed launch
-python image_embedding.py
+echo training started 
+python image_embedding.py > output.log 2>&1
 
         

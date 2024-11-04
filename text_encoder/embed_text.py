@@ -13,15 +13,21 @@ def get_text_embeddings_BERT(definitions):
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
     model = BertModel.from_pretrained('bert-base-uncased')
     embeddings = []
-    embeddings_dict = {}
-    for definition in definitions.values():
-        inputs = tokenizer(definition, return_tensors='pt')
+    embedding_dict = {}
+    
+    for label, definition in definitions.items():
+        inputs = tokenizer(definition, return_tensors='pt', truncation=True, padding=True)
         outputs = model(**inputs)
-        text_embedding = outputs.last_hidden_state
+        
+        # Use the CLS token as the embedding representation
+        text_embedding = outputs.last_hidden_state[:, 0, :]  # CLS token's embedding
+        print(f"This is the embedding size for {label}::: {text_embedding.shape}")
         
         embeddings.append(text_embedding)
-    print(f"shape of embeddings:{len(embeddings)}")
-    return embeddings
+        embedding_dict[label] = text_embedding
+    
+    print(f"Shape of embeddings: {len(embeddings)}")
+    return embedding_dict, embeddings
 
 def get_text_embeddings_SBERT(definitions):
     model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
@@ -56,11 +62,11 @@ def save_embeddings(definitionsembedding, save_path='text_embeddings.json'):
 if __name__ == '__main__':
     #definitions = {'Abuse': 'cruel or inhumane treatment', 'Arrest': 'the act of apprehending (especially apprehending a criminal)', 'Arson': 'malicious burning to destroy property', 'Assault': 'close fighting during the culmination of a military attack', 'Burglary': 'entering a building unlawfully with intent to commit a felony or to steal valuable property', 'Explosion': 'a violent release of energy caused by a chemical or nuclear reaction', 'Fighting': 'the act of fighting; any contest or struggle', 'Normal Videos': 'Regular video content without criminal activity.', 'RoadAccidents': 'Accidents occurring on the road involving vehicles.', 'Robbery': 'larceny by threat of violence', 'Shooting': 'the act of firing a projectile', 'Shoplifting': 'the act of stealing goods that are on display in a store', 'Stealing': 'the act of taking something from someone unlawfully', 'Vandalism': 'willful wanton and malicious destruction of the property of others'}
     path = './text_encoder/data/text_expanded_definitions.json'
-    save_path = './text_encoder/data/text_embeddings.json'
+    save_path = './text_encoder/data/bert_text_embeddings.json'
     definitions = load_definitions(path=path)
-    BERT_embeddings = get_text_embeddings_BERT(definitions)
-    SBERT_embeddings_dict, SBERT_embeddings = get_text_embeddings_SBERT(definitions)
-    save_embeddings(SBERT_embeddings_dict,save_path=save_path)
+    BERT_embeddings_dict, BERT_embeddings = get_text_embeddings_BERT(definitions)
+    #SBERT_embeddings_dict, SBERT_embeddings = get_text_embeddings_SBERT(definitions)
+    save_embeddings(BERT_embeddings_dict,save_path=save_path)
     print (definitions)
     '''print(BERT_embeddings)'''
     print(f"saving embeddings at {save_path}")
