@@ -42,7 +42,7 @@ def main(args):
 
     cudnn.benchmark = True
 
-    data_loader, class_mask = build_continual_dataloader(args)
+    data_loader, class_mask, idx_to_class = build_continual_dataloader(args)
 
     print(f"Creating original model: {args.model}")
     original_model = create_model(
@@ -132,7 +132,7 @@ def main(args):
     print(f"Start training for {args.epochs} epochs")
     start_time = time.time()
 
-    train_and_evaluate(model, model_without_ddp, original_model,
+    train_and_evaluate(idx_to_class, model, model_without_ddp, original_model,
                     criterion, data_loader, optimizer, lr_scheduler,
                     device, class_mask, args)
 

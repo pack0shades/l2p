@@ -30,15 +30,14 @@ from SemAlign.semalign import SemAlign_BERT, SemAlign_SBERT
  
 
 
-def train_one_epoch(model: torch.nn.Module, original_model: torch.nn.Module,
+def train_one_epoch(idx_to_class, model: torch.nn.Module, original_model: torch.nn.Module,
                     criterion, data_loader: Iterable, optimizer: torch.optim.Optimizer,
                     device: torch.device, epoch: int, max_norm: float = 0,
-                    set_training_mode=True, task_id=-1, class_mask=None, args = None,):
-
+                    set_training_mode=True, task_id=-1,class_mask=None, args = None,):
     model.train(set_training_mode)
     original_model.eval()
     SemAlign_model = SemAlign_BERT(v_size=768, s_size=768)
-    print(f"loading Semalign-----------------------__________________________________________")
+    #print(f"loading Semalign-----------------------__________________________________________")
     checkpoint = torch.load('./BERT_checkpoints/checkpoint_epoch_2.pth', map_location=device)
     SemAlign_model.load_state_dict(checkpoint["model_state_dict"])
     SemAlign_model.to(device)
@@ -56,24 +55,26 @@ def train_one_epoch(model: torch.nn.Module, original_model: torch.nn.Module,
     for input, target in metric_logger.log_every(data_loader, args.print_freq, header):
 
         input = input.to(device, non_blocking=True)
-        print(f"this is input image embedding size{input.shape}________________________________________________")        
+        target = target.to(device, non_blocking=True)
+        #print(f"this is input image embedding size{input.shape}________________________________________________")
+        print(f"this is idx_to_class dictionary in train one epoch{idx_to_class}")        
         print(f"yee kya hai label hai yaa kuchh orr pata kro daya pta kro:target:{target}")  # debugging statement
         with open('./text_encoder/data/bert_text_embeddings.json', 'r') as file:
             text_embeddings = json.load(file)
         batch_target_embeddings = []
         for single_target in target:
             label_id = single_target.item()
-            label_id_str = str(label_id)
-            if label_id_str in text_embeddings:
-                target_embedding = torch.tensor(text_embeddings[label_id_str]).to(device, non_blocking=True)
-                print(f"Loaded target embedding shape: {target_embedding.shape}")
+            label_name = idx_to_class[label_id]  # Get the string label
+            print(f"ye hai label ka naam jo retrieve hua hai please hojaaaaaaa....{label_name}")
+            if label_name in text_embeddings:
+                target_embedding = torch.tensor(text_embeddings[label_name]).to(device, non_blocking=True)
                 batch_target_embeddings.append(target_embedding)
             else:
-                print(f"Target {target} not found in text_embeddings.")
+                print(f"Target label {label_name} not found in text_embeddings.")
                 batch_target_embeddings.append(None)
         
         batch_target_embeddings = torch.stack([emb for emb in batch_target_embeddings if emb is not None])
-
+        batch_target_embeddings = batch_target_embeddings.to(device)
 
         # target = target.to(device, non_blocking=True)
         # target_embedding.to(device, non_blocking=True)
@@ -91,7 +92,7 @@ def train_one_epoch(model: torch.nn.Module, original_model: torch.nn.Module,
                     
                 batch_target_embeddings = batch_target_embeddings.reshape(batch_target_embeddings.size(0), -1)
 
-                print(f"ye hai cls_features ka dimension::{cls_features.shape}\nye hai label_embedding ka dimension::{batch_target_embeddings.shape}")
+                #print(f"ye hai cls_features ka dimension::{cls_features.shape}\nye hai label_embedding ka dimension::{batch_target_embeddings.shape}")
                 cls_features = SemAlign_model(cls_features,batch_target_embeddings)  # added this to get input of original_model in semalign
             else:
                 cls_features = None
@@ -215,9 +216,9 @@ def evaluate_till_now(model: torch.nn.Module, original_model: torch.nn.Module, d
 
     return test_stats
 
-def train_and_evaluate(model: torch.nn.Module, model_without_ddp: torch.nn.Module, original_model: torch.nn.Module, 
-                    criterion, data_loader: Iterable, optimizer: torch.optim.Optimizer, lr_scheduler, device: torch.device, 
-                    class_mask=None, args = None,):
+def train_and_evaluate(idx_to_class, model: torch.nn.Module, model_without_ddp: torch.nn.Module, original_model: torch.nn.Module, 
+                    criterion, data_loader: Iterable, optimizer: torch.optim.Optimizer, lr_scheduler, device: torch.device,
+                    class_mask,args):
 
     # create matrix to save end-of-task accuracies 
     acc_matrix = np.zeros((args.num_tasks, args.num_tasks))
@@ -272,7 +273,7 @@ def train_and_evaluate(model: torch.nn.Module, model_without_ddp: torch.nn.Modul
             optimizer = create_optimizer(args, model)
         
         for epoch in range(args.epochs):            
-            train_stats = train_one_epoch(model=model, original_model=original_model, criterion=criterion, 
+            train_stats = train_one_epoch(idx_to_class, model=model, original_model=original_model, criterion=criterion, 
                                         data_loader=data_loader[task_id]['train'], optimizer=optimizer, 
                                         device=device, epoch=epoch, max_norm=args.clip_grad, 
                                         set_training_mode=True, task_id=task_id, class_mask=class_mask, args=args,)

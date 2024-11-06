@@ -33,16 +33,20 @@ def target_transform(x, nb_classes):
 def build_continual_dataloader(args):
     dataloader = list()
     class_mask = list() if args.task_inc or args.train_mask else None
-
+    label_to_index = {} # a dictionary to map class labels and class idx which is being used for training
     transform_train = build_transform(True, args)
     transform_val = build_transform(False, args)
 
     if args.dataset.startswith('Split-'):
         dataset_train, dataset_val = get_dataset(args.dataset.replace('Split-',''), transform_train, transform_val, args)
 
-        args.nb_classes = len(dataset_val.classes)
-
         splited_dataset, class_mask = split_single_dataset(dataset_train, dataset_val, args)
+
+        # Populate the label_to_index dictionary using class_mask
+        for task_id, task_classes in enumerate(class_mask):
+            for class_idx in task_classes:
+                label_name = dataset_train.classes[class_idx]
+                label_to_index[label_name] = class_idx
     else:
         if args.dataset == '5-datasets':
             dataset_list = ['SVHN', 'MNIST', 'CIFAR10', 'NotMNIST', 'FashionMNIST']
@@ -67,6 +71,10 @@ def build_continual_dataloader(args):
             if class_mask is not None:
                 class_mask.append([i + args.nb_classes for i in range(len(dataset_val.classes))])
                 args.nb_classes += len(dataset_val.classes)
+
+                # Populate label_to_index for each dataset in dataset_list
+                for class_idx, class_name in enumerate(dataset_val.classes):
+                    label_to_index[class_name] = class_idx + args.nb_classes - len(dataset_val.classes)
 
             if not args.task_inc:
                 dataset_train.target_transform = transform_target
@@ -99,8 +107,9 @@ def build_continual_dataloader(args):
         )
 
         dataloader.append({'train': data_loader_train, 'val': data_loader_val})
+        print(f"this is label_to_idx dictionary hopefully this will work{label_to_index}")
 
-    return dataloader, class_mask
+    return dataloader, class_mask, label_to_index
 
 def get_dataset(dataset, transform_train, transform_val, args,):
     if dataset == 'CIFAR100':
